@@ -8,11 +8,14 @@ from kmk.scanners import DiodeOrientation
 from kmk.extensions.peg_oled_Display import Oled,OledDisplayMode,OledReactionType,OledData
 from kmk.modules.encoder import EncoderHandler
 from kmk.modules.layers import Layers
+from kmk.modules.layers import Layers as _Layers
 from kmk.extensions.RGB import RGB
 from kmk.extensions.rgb import AnimationModes
 from kmk.modules.split import Split, SplitType, SplitSide
 from storage import getmount
 
+sat = 255
+val = 100; # brightness in range 0-255
 side = SplitSide.RIGHT if str(getmount('/').label)[-1] == 'R' else SplitSide.LEFT
 
 if side == SplitSide.RIGHT:
@@ -35,9 +38,13 @@ keyboard = KMKKeyboard()
 layers = Layers()
 encoder_handler = EncoderHandler()
 
-keyboard.modules.append(layers)
+rgb = RGB(pixel_pin=board.GP10, num_pixels=5, animation_mode=AnimationModes.KNIGHT,hue_default=170,sat_default=sat,val_default=val,)
+keyboard.extensions.append(rgb)
+
 keyboard.modules.append(encoder_handler)
 keyboard.modules.append(split)
+
+keyboard.modules.append(layers)
 
 encoder_handler.pins = ((board.GP27, board.GP26, board.GP28),)
 
@@ -68,7 +75,7 @@ keyboard.keymap = [[
       KC.N3,
       KC.N4,
       KC.N5,
-      KC.DOT,
+      KC.MO(1),
       KC.DOT,
       KC.N6,
       KC.N7,
@@ -121,12 +128,85 @@ keyboard.keymap = [[
       KC.LGUI,
       KC.KP_PLUS,
       KC.KP_MINUS,
-      KC.KP_ASTERISK,
-      KC.LCTRL,
+      KC.HT(KC.KP_ASTERISK, KC.LALT),
+      KC.HT(KC.BSLASH,KC.LCTRL),
       KC.BSPACE,
       KC.DELETE,
       KC.ENTER,
       KC.SPACE,
+      KC.RALT,
+      KC.LEFT,
+      KC.DOWN,
+      KC.UP,
+      KC.RIGHT
+    ],
+    [
+      KC.GRAVE,
+      KC.F1,
+      KC.F2,
+      KC.F3,
+      KC.F4,
+      KC.F5,
+      KC.MO(0),
+      KC.DOT,
+      KC.F6,
+      KC.F7,
+      KC.F8,
+      KC.F9,
+      KC.F10,
+      KC.MINUS,
+      KC.TAB,
+      KC.Q,
+      KC.W,
+      KC.F,
+      KC.P,
+      KC.B,
+      KC.LBRC,
+      KC.RBRC,
+      KC.J,
+      KC.L,
+      KC.U,
+      KC.Y,
+      KC.SCOLON,
+      KC.EQUAL,
+      KC.ESCAPE,
+      KC.A,
+      KC.R,
+      KC.S,
+      KC.T,
+      KC.G,
+      KC.PGUP,
+      KC.PGDOWN,
+      KC.M,
+      KC.N,
+      KC.E,
+      KC.I,
+      KC.O,
+      KC.QUOTE,
+      KC.LSHIFT,
+      KC.Z,
+      KC.X,
+      KC.C,
+      KC.D,
+      KC.V,
+      KC.PGDOWN,
+      KC.BSLASH,
+      KC.K,
+      KC.H,
+      KC.COMMA,
+      KC.DOT,
+      KC.SLSH,
+      KC.RSHIFT,
+      KC.LGUI,
+      KC.KP_PLUS,
+      KC.KP_MINUS,
+      KC.HT(KC.KP_ASTERISK, KC.LALT),
+      KC.HT(KC.BSLASH,KC.LCTRL),
+      KC.BSPACE,
+      KC.DELETE,
+      KC.ENTER,
+      KC.SPACE,
+      KC.RALT,
       KC.LEFT,
       KC.DOWN,
       KC.UP,
@@ -139,11 +219,18 @@ Zoom_out = KC.LCTRL(KC.MINUS)
 
 encoder_handler.map = [((KC.A, KC.B, KC.C),),]
 
-oled_ext = Oled(OledData(image={0:OledReactionType.LAYER,1:[imgToDisplay]}),toDisplay=OledDisplayMode.IMG,flip=True)
-
+#oled_ext = Oled(OledData(image={0:OledReactionType.LAYER,1:[imgToDisplay]}),toDisplay=OledDisplayMode.IMG,flip=True)
+oled = Oled(
+    OledData(
+        corner_one={0:OledReactionType.STATIC,1:["layer"]},
+        corner_two={0:OledReactionType.LAYER,1:["1","2","3","4"]},
+        corner_three={0:OledReactionType.LAYER,1:["base","raise","lower","adjust"]},
+        corner_four={0:OledReactionType.LAYER,1:["qwerty","nums","shifted","leds"]}
+        ),
+        toDisplay=OledDisplayMode.TXT,flip=True)
 keyboard.debug_enabled = True
-rgb = RGB(pixel_pin=board.GP10, num_pixels=5, animation_mode=AnimationModes.KNIGHT,)
-keyboard.extensions.append(rgb)
-keyboard.extensions.append(oled_ext)
+
+keyboard.extensions.append(oled)
+
 if __name__ == "__main__":
     keyboard.go()
