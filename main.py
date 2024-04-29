@@ -1,19 +1,18 @@
-print("ciao")
-
 import board
 
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
+from kmk.extensions.media_keys import MediaKeys
 from kmk.extensions.peg_oled_Display import Oled,OledDisplayMode,OledReactionType,OledData
 from kmk.modules.encoder import EncoderHandler
 from kmk.modules.layers import Layers
-from kmk.modules.layers import Layers as _Layers
+from kmk.modules.capsword import CapsWord
 from kmk.extensions.RGB import RGB
 from kmk.extensions.rgb import AnimationModes
 from kmk.modules.split import Split, SplitType, SplitSide
 from storage import getmount
-
+caps_word=CapsWord()
 sat = 255
 val = 100; # brightness in range 0-255
 side = SplitSide.RIGHT if str(getmount('/').label)[-1] == 'R' else SplitSide.LEFT
@@ -37,7 +36,7 @@ split = Split(
 keyboard = KMKKeyboard()
 layers = Layers()
 encoder_handler = EncoderHandler()
-
+keyboard.extensions.append(MediaKeys())
 rgb = RGB(
     pixel_pin=board.GP10, 
     num_pixels=5, 
@@ -83,7 +82,7 @@ keyboard.keymap = [[
       KC.N3,
       KC.N4,
       KC.N5,
-      KC.MO(1),
+      KC.HT(KC.CW,KC.MO(1)),
       KC.PS_TOG,
       KC.N6,
       KC.N7,
@@ -225,7 +224,7 @@ keyboard.keymap = [[
 Zoom_in = KC.LCTRL(KC.EQUAL)
 Zoom_out = KC.LCTRL(KC.MINUS)
 
-encoder_handler.map = [((Zoom_in, Zoom_out, KC.C),),]
+encoder_handler.map = [((KC.AUDIO_VOL_UP, KC.AUDIO_VOL_DOWN,KC.MPLY),(KC.AUDIO_VOL_UP, KC.AUDIO_VOL_DOWN,KC.MPLY)),]
 
 #oled_ext = Oled(OledData(image={0:OledReactionType.LAYER,1:[imgToDisplay]}),toDisplay=OledDisplayMode.IMG,flip=True)
 oled = Oled(
@@ -237,7 +236,7 @@ oled = Oled(
         ),
         toDisplay=OledDisplayMode.TXT,flip=True,oHeight=64)
 keyboard.debug_enabled = False
-
+keyboard.modules.append(caps_word)
 keyboard.extensions.append(oled)
 
 if __name__ == "__main__":
