@@ -38,7 +38,15 @@ keyboard = KMKKeyboard()
 layers = Layers()
 encoder_handler = EncoderHandler()
 
-rgb = RGB(pixel_pin=board.GP10, num_pixels=5, animation_mode=AnimationModes.KNIGHT,hue_default=170,sat_default=sat,val_default=val,)
+rgb = RGB(
+    pixel_pin=board.GP10, 
+    num_pixels=5, 
+    animation_mode=AnimationModes.BREATHING_RAINBOW,
+    hue_default=170,
+    sat_default=sat,
+    val_default=val,
+)
+
 keyboard.extensions.append(rgb)
 
 keyboard.modules.append(encoder_handler)
@@ -76,7 +84,7 @@ keyboard.keymap = [[
       KC.N4,
       KC.N5,
       KC.MO(1),
-      KC.DOT,
+      KC.PS_TOG,
       KC.N6,
       KC.N7,
       KC.N8,
@@ -148,7 +156,7 @@ keyboard.keymap = [[
       KC.F4,
       KC.F5,
       KC.MO(0),
-      KC.DOT,
+      KC.RGB_TOG(),
       KC.F6,
       KC.F7,
       KC.F8,
@@ -156,12 +164,12 @@ keyboard.keymap = [[
       KC.F10,
       KC.MINUS,
       KC.TAB,
-      KC.Q,
-      KC.W,
-      KC.F,
-      KC.P,
-      KC.B,
-      KC.LBRC,
+      KC.RGB_MODE_PLAIN,
+      KC.RGB_MODE_BREATHE,
+      KC.RGB_MODE_RAINBOW,
+      KC.RGB_MODE_BREATHE_RAINBOW,
+      KC.RGB_MODE_KNIGHT,
+      KC.RGB_MODE_SWIRL,
       KC.RBRC,
       KC.J,
       KC.L,
@@ -170,10 +178,10 @@ keyboard.keymap = [[
       KC.SCOLON,
       KC.EQUAL,
       KC.ESCAPE,
-      KC.A,
-      KC.R,
-      KC.S,
-      KC.T,
+      KC.RGB_HUI,
+      KC.RGB_HUD,
+      KC.RGB_SAI,
+      KC.RGB_SAD,
       KC.G,
       KC.PGUP,
       KC.PGDOWN,
@@ -184,10 +192,10 @@ keyboard.keymap = [[
       KC.O,
       KC.QUOTE,
       KC.LSHIFT,
-      KC.Z,
-      KC.X,
-      KC.C,
-      KC.D,
+      KC.RGB_VAI,
+      KC.RGB_VAD,
+      KC.RGB_ANI,
+      KC.RGB_AND,
       KC.V,
       KC.PGDOWN,
       KC.BSLASH,
@@ -217,7 +225,7 @@ keyboard.keymap = [[
 Zoom_in = KC.LCTRL(KC.EQUAL)
 Zoom_out = KC.LCTRL(KC.MINUS)
 
-encoder_handler.map = [((KC.A, KC.B, KC.C),),]
+encoder_handler.map = [((Zoom_in, Zoom_out, KC.C),),]
 
 #oled_ext = Oled(OledData(image={0:OledReactionType.LAYER,1:[imgToDisplay]}),toDisplay=OledDisplayMode.IMG,flip=True)
 oled = Oled(
@@ -225,10 +233,10 @@ oled = Oled(
         corner_one={0:OledReactionType.STATIC,1:["layer"]},
         corner_two={0:OledReactionType.LAYER,1:["1","2","3","4"]},
         corner_three={0:OledReactionType.LAYER,1:["base","raise","lower","adjust"]},
-        corner_four={0:OledReactionType.LAYER,1:["qwerty","nums","shifted","leds"]}
+        corner_four={0:OledReactionType.LAYER,1:["colemak_dh","f keys","shifted","leds"]}
         ),
-        toDisplay=OledDisplayMode.TXT,flip=True)
-keyboard.debug_enabled = True
+        toDisplay=OledDisplayMode.TXT,flip=True,oHeight=64)
+keyboard.debug_enabled = False
 
 keyboard.extensions.append(oled)
 
