@@ -114,7 +114,7 @@ class CustomKMKKeyboard(KMKKeyboard):
     14, 15, 16, 17, 18, 19, 20, 58, 57, 56, 55, 54, 53, 52,
     21, 22, 23, 24, 25, 26, 27, 65, 64, 63, 62, 61, 60, 59,
     28, 29, 30, 31, 32, 33, 34, 72, 71, 70, 69, 68, 67, 66,
-            35, 36, 37,                      73, 74,75
+            35, 36, 37,                 73, 74, 75
     ]
 
 # fmt: off
@@ -172,8 +172,8 @@ keyboard.keymap = [
         KC.F,
         KC.P,
         KC.B,
-        KC.LBRC,
-        KC.RBRC,
+        KC.PGDOWN,
+        KC.BSLASH,
         KC.J,
         KC.L,
         KC.U,
@@ -200,8 +200,8 @@ keyboard.keymap = [
         KC.C,
         KC.D,
         KC.V,
-        KC.PGDOWN,
-        KC.BSLASH,
+        KC.LBRC,
+        KC.RBRC,
         KC.K,
         KC.H,
         KC.COMMA,
