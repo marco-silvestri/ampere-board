@@ -1,5 +1,6 @@
 import board
 
+from jiggler import MouseJitter
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
@@ -21,6 +22,7 @@ from kmk.scanners.keypad import MatrixScanner
 from kmk.scanners.encoder import RotaryioEncoder
 from storage import getmount
 
+jitter = MouseJitter()
 caps_word = CapsWord()
 sat = 255
 val = 100
@@ -146,13 +148,14 @@ oled = Oled(
     flip=True,
     oHeight=64,
 )
-
+keyboard.modules.append(jitter)
 keyboard.modules.append(caps_word)
 keyboard.extensions.append(oled)
 
 keyboard.keymap = [
     [
-        KC.GRAVE,
+        KC.TG_JITTER,
+        #KC.GRAVE,
         KC.N1,
         KC.N2,
         KC.N3,
