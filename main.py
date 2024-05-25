@@ -1,18 +1,14 @@
 import board
+import busio
+from kmk.extensions.display import Display, TextEntry, ImageEntry
+from kmk.extensions.display.ssd1306 import SSD1306
 
 from jiggler import MouseJitter
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
 from kmk.extensions.media_keys import MediaKeys
-from kmk.extensions.peg_oled_Display import (
-    Oled,
-    OledDisplayMode,
-    OledReactionType,
-    OledData,
-)
 from kmk.scanners.keypad import KeysScanner
-from kmk.modules.encoder import EncoderHandler
 from kmk.modules.layers import Layers
 from kmk.modules.capsword import CapsWord
 from kmk.extensions.RGB import RGB
@@ -24,9 +20,6 @@ from storage import getmount
 
 jitter = MouseJitter()
 caps_word = CapsWord()
-sat = 255
-val = 100
-# brightness in range 0-255
 side = SplitSide.RIGHT if str(getmount("/").label)[-1] == "R" else SplitSide.LEFT
 
 if side == SplitSide.RIGHT:
@@ -45,14 +38,13 @@ split = Split(
 )
 
 layers = Layers()
-encoder_handler = EncoderHandler()
 rgb = RGB(
     pixel_pin=board.GP10,
-    num_pixels=5,
-    animation_mode=AnimationModes.BREATHING_RAINBOW,
+    num_pixels=3,
+    animation_mode=AnimationModes.KNIGHT,
     hue_default=170,
-    sat_default=sat,
-    val_default=val,
+    sat_default=255,
+    val_default=0,
 )
 
 
@@ -127,35 +119,44 @@ keyboard.extensions.append(rgb)
 keyboard.modules.append(split)
 keyboard.modules.append(layers)
 
-# keyboard.modules.append(encoder_handler)
-# encoder_handler.pins = ((board.GP27, board.GP26, board.GP28),)
-# encoder_handler.map = [((KC.AUDIO_VOL_UP, KC.AUDIO_VOL_DOWN,KC.MPLY),(KC.AUDIO_VOL_UP, KC.AUDIO_VOL_DOWN,KC.MPLY)),]
-
-oled = Oled(
-    OledData(
-        corner_one={0: OledReactionType.STATIC, 1: ["layer"]},
-        corner_two={0: OledReactionType.LAYER, 1: ["1", "2", "3", "4"]},
-        corner_three={
-            0: OledReactionType.LAYER,
-            1: ["base", "raise", "lower", "adjust"],
-        },
-        corner_four={
-            0: OledReactionType.LAYER,
-            1: ["colemak_dh", "f keys", "shifted", "leds"],
-        },
-    ),
-    toDisplay=OledDisplayMode.TXT,
-    flip=True,
-    oHeight=64,
+i2c_bus = busio.I2C(keyboard.SCL, keyboard.SDA)
+driver = SSD1306(
+    # Mandatory:
+    i2c=i2c_bus,
+    # Optional:
+    device_address=0x3C,
 )
+
+display = Display(
+    # Mandatory:
+    display=driver,
+    entries=[
+        TextEntry(text='Ampere Board', x=0, y=0, y_anchor='A'),
+        TextEntry(text='Layer: ', x=0, y=42, y_anchor='B'),
+        TextEntry(text='BASE', x=40, y=42, y_anchor='B', layer=0),
+        TextEntry(text='FN', x=40, y=42, y_anchor='B', layer=1),
+        TextEntry(text='0 1', x=0, y=14),
+        TextEntry(text='0', x=0, y=14, inverted=True, layer=0),
+        TextEntry(text='1', x=12, y=14, inverted=True, layer=1),
+    ],
+    # Optional width argument. Default is 128.
+    # width=128,
+    height=64,
+    dim_time=10,
+    dim_target=0.2,
+    off_time=300,
+    brightness=1,
+    flip_left = True, # flips your display content on left side split
+    flip_right = True, # flips your display content on right side split
+)
+
 keyboard.modules.append(jitter)
 keyboard.modules.append(caps_word)
-keyboard.extensions.append(oled)
+keyboard.extensions.append(display)
 
 keyboard.keymap = [
     [
-        KC.TG_JITTER,
-        #KC.GRAVE,
+        KC.GRAVE,
         KC.N1,
         KC.N2,
         KC.N3,
@@ -233,7 +234,7 @@ keyboard.keymap = [
         KC.MEDIA_PLAY_PAUSE,
     ],
     [
-        KC.GRAVE,
+        KC.TG_JITTER,
         KC.F1,
         KC.F2,
         KC.F3,

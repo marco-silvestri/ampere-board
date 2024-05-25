@@ -3,7 +3,7 @@ from kmk.modules import Module
 from kmk.scheduler import cancel_task, create_task
 
 class MouseJitter(Module):
-    def __init__(self, interval=2000, distance=50):
+    def __init__(self, interval=180000, distance=50):
         self.distance = distance
         self.interval = interval
 
