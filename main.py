@@ -2,8 +2,7 @@ import board
 import busio
 from kmk.extensions.display import Display, TextEntry, ImageEntry
 from kmk.extensions.display.ssd1306 import SSD1306
-
-from jiggler import MouseJitter
+#from jiggler import MouseJitter
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
@@ -16,30 +15,13 @@ from kmk.extensions.rgb import AnimationModes
 from kmk.modules.split import Split, SplitType, SplitSide
 from kmk.scanners.keypad import MatrixScanner
 from kmk.scanners.encoder import RotaryioEncoder
+from kmk.modules.holdtap import HoldTap
 from storage import getmount
 
-from kmk.utils import Debug
-
-# Create a debug source with the current file as message origin
-debug = Debug(__name__)
-
-# For completeness: Force enable/disable debug output. This is handled
-# automatically -- you will most likely never have to use this:
-# debug.enabled = True/False
-
-# KMK idiomatic debug with guard clause
-var = 'concatenate'
-if debug.enabled:
-    debug('Arguments ', var, '!')
-
-jitter = MouseJitter()
+#jitter = MouseJitter()
 caps_word = CapsWord()
 side = SplitSide.RIGHT if str(getmount("/").label)[-1] == "R" else SplitSide.LEFT
 
-if side == SplitSide.RIGHT:
-    imgToDisplay = "hearts.bmp"
-else:
-    imgToDisplay = "stars.bmp"
 split = Split(
     split_side=side,
     split_target_left=True,
@@ -61,12 +43,36 @@ rgb = RGB(
     val_default=0,
 )
 
+holdtap = HoldTap()
 
 class CustomKMKKeyboard(KMKKeyboard):
-    def __init__(
-        self,
-    ):
-        # create and register the scanner(s)
+    def __init__(self):
+        super().__init__()
+
+        # Define pins
+        self.col_pins = (
+            board.GP16,
+            board.GP17,
+            board.GP18,
+            board.GP19,
+            board.GP20,
+            board.GP21,
+            board.GP22,
+        )
+        self.row_pins = (
+            board.GP15,
+            board.GP14,
+            board.GP13,
+            board.GP12,
+            board.GP11,
+        )
+        self.diode_orientation = DiodeOrientation.COL2ROW
+        self.encoder_a = board.GP27
+        self.encoder_b = board.GP26
+        self.SCL = board.GP7
+        self.SDA = board.GP6
+
+        # Create and register the scanners
         self.matrix = [
             MatrixScanner(
                 # required arguments:
@@ -77,62 +83,54 @@ class CustomKMKKeyboard(KMKKeyboard):
                 interval=0.02,  # Debounce time in floating point seconds
                 max_events=64,
             ),
-            RotaryioEncoder(
-                pin_a=self.encoder_a,
-                pin_b=self.encoder_b,
-                divisor=2,
-            ),
-            KeysScanner(
-                # require argument:
-                pins=[board.GP28],
-                # optional arguments with defaults:
-                value_when_pressed=False,
-                pull=True,
-                interval=0.02,  # Debounce time in floating point seconds
-                max_events=64,
-            ),
         ]
 
-    col_pins = (
-        board.GP16,
-        board.GP17,
-        board.GP18,
-        board.GP19,
-        board.GP20,
-        board.GP21,
-        board.GP22,
-    )
-    row_pins = (
-        board.GP15,
-        board.GP14,
-        board.GP13,
-        board.GP12,
-        board.GP11,
-    )
-    diode_orientation = DiodeOrientation.COL2ROW
-    encoder_a = board.GP27
-    encoder_b = board.GP26
-    SCL = board.GP7
-    SDA = board.GP6
+        # Add encoder scanner - only register on the side that has the encoder
+        # For split keyboards, typically each side has its own encoder
+        encoder_scanner = RotaryioEncoder(
+            pin_a=self.encoder_a,
+            pin_b=self.encoder_b,
+            divisor=2,
+        )
+        self.matrix.append(encoder_scanner)
 
-    # fmt: off
-    coord_mapping = [
-     0,  1,  2,  3,  4,  5, 6,  44 ,43, 42, 41, 40, 39, 38,
-     7,  8,  9, 10, 11, 12, 13, 51, 50, 49, 48, 47, 46, 45,
-    14, 15, 16, 17, 18, 19, 20, 58, 57, 56, 55, 54, 53, 52,
-    21, 22, 23, 24, 25, 26, 27, 65, 64, 63, 62, 61, 60, 59,
-    28, 29, 30, 31, 32, 33, 34, 72, 71, 70, 69, 68, 67, 66,
-            35, 36, 37,                 73, 74, 75
-    ]
+        # Add additional key scanner if needed
+        key_scanner = KeysScanner(
+            # require argument:
+            pins=[board.GP28],
+            # optional arguments with defaults:
+            value_when_pressed=False,
+            pull=True,
+            interval=0.02,  # Debounce time in floating point seconds
+            max_events=64,
+        )
+        self.matrix.append(key_scanner)
 
-# fmt: off
+        # Coordinate mapping for split keyboard
+        # fmt: off
+        self.coord_mapping = [
+         0,  1,  2,  3,  4,  5, 6,  44 ,43, 42, 41, 40, 39, 38,
+         7,  8,  9, 10, 11, 12, 13, 51, 50, 49, 48, 47, 46, 45,
+        14, 15, 16, 17, 18, 19, 20, 58, 57, 56, 55, 54, 53, 52,
+        21, 22, 23, 24, 25, 26, 27, 65, 64, 63, 62, 61, 60, 59,
+        28, 29, 30, 31, 32, 33, 34, 72, 71, 70, 69, 68, 67, 66,
+                35, 36, 37,                 73, 74, 75
+        ]
+        # fmt: on
+
+# Create keyboard instance
 keyboard = CustomKMKKeyboard()
 
+# Add extensions and modules
 keyboard.extensions.append(MediaKeys())
 keyboard.extensions.append(rgb)
 keyboard.modules.append(split)
 keyboard.modules.append(layers)
+#keyboard.modules.append(jitter)
+keyboard.modules.append(caps_word)
+keyboard.modules.append(holdtap)
 
+# Setup display
 i2c_bus = busio.I2C(keyboard.SCL, keyboard.SDA)
 driver = SSD1306(
     # Mandatory:
@@ -160,14 +158,13 @@ display = Display(
     dim_target=0.2,
     off_time=300,
     brightness=1,
-    flip_left = True, # flips your display content on left side split
-    flip_right = True, # flips your display content on right side split
+    flip_left=True,  # flips your display content on left side split
+    flip_right=True,  # flips your display content on right side split
 )
 
-keyboard.modules.append(jitter)
-keyboard.modules.append(caps_word)
 keyboard.extensions.append(display)
 
+# Keymap with encoder positions properly mapped
 keyboard.keymap = [
     [
         KC.GRAVE,
@@ -240,12 +237,13 @@ keyboard.keymap = [
         KC.DOWN,
         KC.UP,
         KC.RIGHT,
-        KC.AUDIO_VOL_UP,  # Left side clockwise
-        KC.AUDIO_VOL_DOWN,  # Left side counterclockwise
-        KC.AUDIO_MUTE,
-        KC.MEDIA_NEXT_TRACK,  # Right side clockwise
-        KC.MEDIA_PREV_TRACK,  # Right side counterclockwise
-        KC.MEDIA_PLAY_PAUSE,
+        # Encoder mappings - these should correspond to your coord_mapping
+        KC.AUDIO_VOL_UP,    # Encoder 1 clockwise
+        KC.AUDIO_VOL_DOWN,  # Encoder 1 counterclockwise
+        KC.AUDIO_MUTE,      # Encoder 1 press
+        KC.MEDIA_NEXT_TRACK,  # Encoder 2 clockwise
+        KC.MEDIA_PREV_TRACK,  # Encoder 2 counterclockwise
+        KC.MEDIA_PLAY_PAUSE,  # Encoder 2 press
     ],
     [
         KC.TG_JITTER,
@@ -255,7 +253,7 @@ keyboard.keymap = [
         KC.F4,
         KC.F5,
         KC.MO(0),
-        KC.RGB_TOG(),
+        KC.RGB_TOG,
         KC.F6,
         KC.F7,
         KC.F8,
@@ -318,16 +316,15 @@ keyboard.keymap = [
         KC.DOWN,
         KC.UP,
         KC.RIGHT,
-        KC.AUDIO_VOL_UP,  # Left side clockwise
-        KC.AUDIO_VOL_DOWN,  # Left side counterclockwise
-        KC.MEDIA_PLAY_PAUSE,
-        KC.MEDIA_NEXT_TRACK,  # Right side clockwise
-        KC.MEDIA_PREV_TRACK,  # Right side counterclockwise
-        KC.AUDIO_MUTE,
+        # Encoder mappings for layer 1
+        KC.RGB_HUI,         # Encoder 1 clockwise - Hue increase
+        KC.RGB_HUD,         # Encoder 1 counterclockwise - Hue decrease
+        KC.RGB_TOG,       # Encoder 1 press - RGB toggle
+        KC.RGB_VAI,         # Encoder 2 clockwise - Brightness increase
+        KC.RGB_VAD,         # Encoder 2 counterclockwise - Brightness decrease
+        KC.RGB_MODE_PLAIN,  # Encoder 2 press - Change to plain mode
     ],
 ]
-
-keyboard.debug_enabled = True
 
 if __name__ == "__main__":
     keyboard.go()
