@@ -18,6 +18,20 @@ from kmk.scanners.keypad import MatrixScanner
 from kmk.scanners.encoder import RotaryioEncoder
 from storage import getmount
 
+from kmk.utils import Debug
+
+# Create a debug source with the current file as message origin
+debug = Debug(__name__)
+
+# For completeness: Force enable/disable debug output. This is handled
+# automatically -- you will most likely never have to use this:
+# debug.enabled = True/False
+
+# KMK idiomatic debug with guard clause
+var = 'concatenate'
+if debug.enabled:
+    debug('Arguments ', var, '!')
+
 jitter = MouseJitter()
 caps_word = CapsWord()
 side = SplitSide.RIGHT if str(getmount("/").label)[-1] == "R" else SplitSide.LEFT
