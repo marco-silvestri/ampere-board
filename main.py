@@ -2,7 +2,8 @@ import board
 import busio
 from kmk.extensions.display import Display, TextEntry, ImageEntry
 from kmk.extensions.display.ssd1306 import SSD1306
-#from jiggler import MouseJitter
+
+# from jiggler import MouseJitter
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
@@ -18,7 +19,7 @@ from kmk.scanners.encoder import RotaryioEncoder
 from kmk.modules.holdtap import HoldTap
 from storage import getmount
 
-#jitter = MouseJitter()
+# jitter = MouseJitter()
 caps_word = CapsWord()
 side = SplitSide.RIGHT if str(getmount("/").label)[-1] == "R" else SplitSide.LEFT
 
@@ -44,6 +45,7 @@ rgb = RGB(
 )
 
 holdtap = HoldTap()
+
 
 class CustomKMKKeyboard(KMKKeyboard):
     def __init__(self):
@@ -83,28 +85,21 @@ class CustomKMKKeyboard(KMKKeyboard):
                 interval=0.02,  # Debounce time in floating point seconds
                 max_events=64,
             ),
+            RotaryioEncoder(
+                pin_a=self.encoder_a,
+                pin_b=self.encoder_b,
+                divisor=2,
+            ),
+            KeysScanner(
+                # require argument:
+                pins=[board.GP28],
+                # optional arguments with defaults:
+                value_when_pressed=False,
+                pull=True,
+                interval=0.02,  # Debounce time in floating point seconds
+                max_events=64,
+            ),
         ]
-
-        # Add encoder scanner - only register on the side that has the encoder
-        # For split keyboards, typically each side has its own encoder
-        encoder_scanner = RotaryioEncoder(
-            pin_a=self.encoder_a,
-            pin_b=self.encoder_b,
-            divisor=2,
-        )
-        self.matrix.append(encoder_scanner)
-
-        # Add additional key scanner if needed
-        key_scanner = KeysScanner(
-            # require argument:
-            pins=[board.GP28],
-            # optional arguments with defaults:
-            value_when_pressed=False,
-            pull=True,
-            interval=0.02,  # Debounce time in floating point seconds
-            max_events=64,
-        )
-        self.matrix.append(key_scanner)
 
         # Coordinate mapping for split keyboard
         # fmt: off
@@ -118,6 +113,7 @@ class CustomKMKKeyboard(KMKKeyboard):
         ]
         # fmt: on
 
+
 # Create keyboard instance
 keyboard = CustomKMKKeyboard()
 
@@ -126,7 +122,7 @@ keyboard.extensions.append(MediaKeys())
 keyboard.extensions.append(rgb)
 keyboard.modules.append(split)
 keyboard.modules.append(layers)
-#keyboard.modules.append(jitter)
+# keyboard.modules.append(jitter)
 keyboard.modules.append(caps_word)
 keyboard.modules.append(holdtap)
 
@@ -143,13 +139,13 @@ display = Display(
     # Mandatory:
     display=driver,
     entries=[
-        TextEntry(text='Ampere Board', x=0, y=0, y_anchor='A'),
-        TextEntry(text='Layer: ', x=0, y=42, y_anchor='B'),
-        TextEntry(text='BASE', x=40, y=42, y_anchor='B', layer=0),
-        TextEntry(text='FN', x=40, y=42, y_anchor='B', layer=1),
-        TextEntry(text='0 1', x=0, y=14),
-        TextEntry(text='0', x=0, y=14, inverted=True, layer=0),
-        TextEntry(text='1', x=12, y=14, inverted=True, layer=1),
+        TextEntry(text="Ampere Board", x=0, y=0, y_anchor="A"),
+        TextEntry(text="Layer: ", x=0, y=42, y_anchor="B"),
+        TextEntry(text="BASE", x=40, y=42, y_anchor="B", layer=0),
+        TextEntry(text="FN", x=40, y=42, y_anchor="B", layer=1),
+        TextEntry(text="0 1", x=0, y=14),
+        TextEntry(text="0", x=0, y=14, inverted=True, layer=0),
+        TextEntry(text="1", x=12, y=14, inverted=True, layer=1),
     ],
     # Optional width argument. Default is 128.
     # width=128,
@@ -238,12 +234,12 @@ keyboard.keymap = [
         KC.UP,
         KC.RIGHT,
         # Encoder mappings - these should correspond to your coord_mapping
-        KC.AUDIO_VOL_UP,    # Encoder 1 clockwise
-        KC.AUDIO_VOL_DOWN,  # Encoder 1 counterclockwise
-        KC.AUDIO_MUTE,      # Encoder 1 press
         KC.MEDIA_NEXT_TRACK,  # Encoder 2 clockwise
         KC.MEDIA_PREV_TRACK,  # Encoder 2 counterclockwise
         KC.MEDIA_PLAY_PAUSE,  # Encoder 2 press
+        KC.AUDIO_VOL_UP,  # Encoder 1 clockwise
+        KC.AUDIO_VOL_DOWN,  # Encoder 1 counterclockwise
+        KC.AUDIO_MUTE,  # Encoder 1 press
     ],
     [
         KC.TG_JITTER,
@@ -317,11 +313,11 @@ keyboard.keymap = [
         KC.UP,
         KC.RIGHT,
         # Encoder mappings for layer 1
-        KC.RGB_HUI,         # Encoder 1 clockwise - Hue increase
-        KC.RGB_HUD,         # Encoder 1 counterclockwise - Hue decrease
-        KC.RGB_TOG,       # Encoder 1 press - RGB toggle
-        KC.RGB_VAI,         # Encoder 2 clockwise - Brightness increase
-        KC.RGB_VAD,         # Encoder 2 counterclockwise - Brightness decrease
+        KC.RGB_HUI,  # Encoder 1 clockwise - Hue increase
+        KC.RGB_HUD,  # Encoder 1 counterclockwise - Hue decrease
+        KC.RGB_TOG,  # Encoder 1 press - RGB toggle
+        KC.RGB_VAI,  # Encoder 2 clockwise - Brightness increase
+        KC.RGB_VAD,  # Encoder 2 counterclockwise - Brightness decrease
         KC.RGB_MODE_PLAIN,  # Encoder 2 press - Change to plain mode
     ],
 ]
