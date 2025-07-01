@@ -2,8 +2,7 @@ import board
 import busio
 from kmk.extensions.display import Display, TextEntry, ImageEntry
 from kmk.extensions.display.ssd1306 import SSD1306
-
-# from jiggler import MouseJitter
+from jiggler import MouseJitter
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
@@ -19,22 +18,19 @@ from kmk.scanners.encoder import RotaryioEncoder
 from kmk.modules.holdtap import HoldTap
 from storage import getmount
 
-# jitter = MouseJitter()
-caps_word = CapsWord()
 side = SplitSide.RIGHT if str(getmount("/").label)[-1] == "R" else SplitSide.LEFT
 
 split = Split(
     split_side=side,
     split_target_left=True,
-    split_type=SplitType.UART,  # Defaults to UART
-    uart_interval=20,  # Sets the uarts delay. Lower numbers draw more power
-    data_pin=board.GP0,  # The primary data pin to talk to the secondary device with
-    data_pin2=board.GP1,  # Second uart pin to allow 2 way communication
-    uart_flip=True,  # Reverses the RX and TX pins if both are provided
-    use_pio=True,  # Use RP2040 PIO implementation of UART. Required if you want to use other pins than RX/TX
+    split_type=SplitType.UART,
+    uart_interval=30,
+    data_pin=board.GP0,
+    data_pin2=board.GP1,
+    uart_flip=True,
+    use_pio=True,
 )
 
-layers = Layers()
 rgb = RGB(
     pixel_pin=board.GP10,
     num_pixels=3,
@@ -44,14 +40,15 @@ rgb = RGB(
     val_default=0,
 )
 
+jitter = MouseJitter()
+caps_word = CapsWord()
+layers = Layers()
 holdtap = HoldTap()
 
-
-class CustomKMKKeyboard(KMKKeyboard):
+class AmpereBoard(KMKKeyboard):
     def __init__(self):
         super().__init__()
 
-        # Define pins
         self.col_pins = (
             board.GP16,
             board.GP17,
@@ -74,15 +71,12 @@ class CustomKMKKeyboard(KMKKeyboard):
         self.SCL = board.GP7
         self.SDA = board.GP6
 
-        # Create and register the scanners
         self.matrix = [
             MatrixScanner(
-                # required arguments:
                 column_pins=self.col_pins,
                 row_pins=self.row_pins,
-                # optional arguments with defaults:
                 columns_to_anodes=self.diode_orientation,
-                interval=0.02,  # Debounce time in floating point seconds
+                interval=0.02,
                 max_events=64,
             ),
             RotaryioEncoder(
@@ -91,52 +85,43 @@ class CustomKMKKeyboard(KMKKeyboard):
                 divisor=2,
             ),
             KeysScanner(
-                # require argument:
-                pins=[board.GP28],
-                # optional arguments with defaults:
+                pins=[board.GP28, board.GP29],
                 value_when_pressed=False,
                 pull=True,
-                interval=0.02,  # Debounce time in floating point seconds
+                interval=0.02,
                 max_events=64,
             ),
         ]
 
-        # Coordinate mapping for split keyboard
         # fmt: off
         self.coord_mapping = [
-         0,  1,  2,  3,  4,  5, 6,  44 ,43, 42, 41, 40, 39, 38,
-         7,  8,  9, 10, 11, 12, 13, 51, 50, 49, 48, 47, 46, 45,
-        14, 15, 16, 17, 18, 19, 20, 58, 57, 56, 55, 54, 53, 52,
-        21, 22, 23, 24, 25, 26, 27, 65, 64, 63, 62, 61, 60, 59,
-        28, 29, 30, 31, 32, 33, 34, 72, 71, 70, 69, 68, 67, 66,
-                35, 36, 37,                 73, 74, 75
+        0,  1,  2,  3,  4,  5, 6,  45, 44, 43, 42, 41, 40, 39,
+        7,  8,  9, 10, 11, 12, 13, 52, 51, 50, 49, 48, 47, 46,
+        14, 15, 16, 17, 18, 19, 20, 59, 58, 57, 56, 55, 54, 53,
+        21, 22, 23, 24, 25, 26, 27, 66, 65, 64, 63, 62, 61, 60,
+        28, 29, 30, 31, 32, 33, 34, 73, 72, 71, 70, 69, 68, 67,
+            35, 36, 37, 38,         74, 75, 76, 77,
         ]
         # fmt: on
 
 
-# Create keyboard instance
-keyboard = CustomKMKKeyboard()
+keyboard = AmpereBoard()
 
-# Add extensions and modules
 keyboard.extensions.append(MediaKeys())
 keyboard.extensions.append(rgb)
 keyboard.modules.append(split)
 keyboard.modules.append(layers)
-# keyboard.modules.append(jitter)
+keyboard.modules.append(jitter)
 keyboard.modules.append(caps_word)
 keyboard.modules.append(holdtap)
 
-# Setup display
 i2c_bus = busio.I2C(keyboard.SCL, keyboard.SDA)
 driver = SSD1306(
-    # Mandatory:
     i2c=i2c_bus,
-    # Optional:
     device_address=0x3C,
 )
 
 display = Display(
-    # Mandatory:
     display=driver,
     entries=[
         TextEntry(text="Ampere Board", x=0, y=0, y_anchor="A"),
@@ -147,20 +132,18 @@ display = Display(
         TextEntry(text="0", x=0, y=14, inverted=True, layer=0),
         TextEntry(text="1", x=12, y=14, inverted=True, layer=1),
     ],
-    # Optional width argument. Default is 128.
-    # width=128,
+    width=128,
     height=64,
     dim_time=10,
     dim_target=0.2,
     off_time=300,
     brightness=1,
-    flip_left=True,  # flips your display content on left side split
-    flip_right=True,  # flips your display content on right side split
+    flip_left=True,
+    flip_right=True,
 )
 
 keyboard.extensions.append(display)
 
-# Keymap with encoder positions properly mapped
 keyboard.keymap = [
     [
         KC.GRAVE,
@@ -177,6 +160,7 @@ keyboard.keymap = [
         KC.N9,
         KC.N0,
         KC.MINUS,
+        #row2
         KC.TAB,
         KC.Q,
         KC.W,
@@ -191,6 +175,7 @@ keyboard.keymap = [
         KC.Y,
         KC.SCOLON,
         KC.EQUAL,
+        #row3
         KC.ESCAPE,
         KC.A,
         KC.R,
@@ -205,6 +190,7 @@ keyboard.keymap = [
         KC.I,
         KC.O,
         KC.QUOTE,
+        #row4
         KC.LSHIFT,
         KC.Z,
         KC.X,
@@ -219,6 +205,7 @@ keyboard.keymap = [
         KC.DOT,
         KC.SLSH,
         KC.RSHIFT,
+        #row5
         KC.LGUI,
         KC.KP_PLUS,
         KC.KP_MINUS,
@@ -233,13 +220,18 @@ keyboard.keymap = [
         KC.DOWN,
         KC.UP,
         KC.RIGHT,
-        # Encoder mappings - these should correspond to your coord_mapping
-        KC.MEDIA_NEXT_TRACK,  # Encoder 2 clockwise
-        KC.MEDIA_PREV_TRACK,  # Encoder 2 counterclockwise
-        KC.MEDIA_PLAY_PAUSE,  # Encoder 2 press
-        KC.AUDIO_VOL_UP,  # Encoder 1 clockwise
-        KC.AUDIO_VOL_DOWN,  # Encoder 1 counterclockwise
-        KC.AUDIO_MUTE,  # Encoder 1 press
+        # Encoder 1 mappings
+        KC.MEDIA_NEXT_TRACK,  # Encoder 1 clockwise
+        KC.MEDIA_PREV_TRACK,  # Encoder 1 counterclockwise
+        KC.MEDIA_PLAY_PAUSE,  # Encoder 1 press
+        #Key Scanner
+        KC.A,
+        # Encoder 1 mappings
+        KC.AUDIO_VOL_UP,  # Encoder 2 clockwise
+        KC.AUDIO_VOL_DOWN,  # Encoder 2 counterclockwise
+        KC.AUDIO_MUTE,  # Encoder 2 press
+        #Key Scanner
+        KC.D,
     ],
     [
         KC.TG_JITTER,
@@ -312,7 +304,7 @@ keyboard.keymap = [
         KC.DOWN,
         KC.UP,
         KC.RIGHT,
-        # Encoder mappings for layer 1
+        # Encoder mappings for layer 2
         KC.RGB_HUI,  # Encoder 1 clockwise - Hue increase
         KC.RGB_HUD,  # Encoder 1 counterclockwise - Hue decrease
         KC.RGB_TOG,  # Encoder 1 press - RGB toggle
