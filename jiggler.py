@@ -1,14 +1,15 @@
+import random
 from kmk.keys import AX, make_key
 from kmk.modules import Module
 from kmk.scheduler import cancel_task, create_task
 
-class MouseJitter(Module):
-    def __init__(self, interval=180000, distance=50):
+class MouseJiggler(Module):
+    def __init__(self, interval=100, distance=10):
         self.distance = distance
         self.interval = interval
-
+        self._jiggle = False
         make_key(
-            names=("TG_JITTER",),
+            names=("TG_JIGGLER",),
             on_press=self.toggle,
         )
 
@@ -49,7 +50,5 @@ class MouseJitter(Module):
             self._jiggle = True
 
     def _move(self, keyboard):
-        AX.X.move(keyboard, self.distance)
-        AX.Y.move(keyboard, self.distance)
-        create_task(lambda: AX.X.move(keyboard, -self.distance))
-        create_task(lambda: AX.Y.move(keyboard, -self.distance))
+        AX.X.move(keyboard, random.choice([-1, 1]) * self.distance)
+        AX.Y.move(keyboard, random.choice([-1, 1]) * self.distance)
