@@ -2,12 +2,15 @@ import random
 from kmk.keys import AX, make_key
 from kmk.modules import Module
 from kmk.scheduler import cancel_task, create_task
+from kmk.extensions.display import TextEntry
+
 
 class MouseJiggler(Module):
     def __init__(self, interval=100, distance=10):
         self.distance = distance
         self.interval = interval
         self._jiggle = False
+        self._prev_jiggle = False
         make_key(
             names=("TG_JIGGLER",),
             on_press=self.toggle,
@@ -22,7 +25,15 @@ class MouseJiggler(Module):
         self._jiggle = False
 
     def before_matrix_scan(self, keyboard):
-        return
+        if self._jiggle != self._prev_jiggle:
+            self._prev_jiggle = self._jiggle
+            if self._jiggle:
+                keyboard.extensions[0].entries.append(
+                    TextEntry(text="*", x=0, y=32, y_anchor="B")
+                )
+            else:
+                keyboard.extensions[0].entries.pop()
+            keyboard.extensions[0].render()
 
     def after_matrix_scan(self, keyboard):
         return
