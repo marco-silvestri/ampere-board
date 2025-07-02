@@ -1,8 +1,8 @@
 import board
 import busio
-from kmk.extensions.display import Display, TextEntry, ImageEntry
+from kmk.extensions.display import Display, TextEntry
 from kmk.extensions.display.ssd1306 import SSD1306
-from jiggler import MouseJitter
+from jiggler import MouseJiggler
 from kmk.kmk_keyboard import KMKKeyboard
 from kmk.keys import KC
 from kmk.scanners import DiodeOrientation
@@ -40,10 +40,11 @@ rgb = RGB(
     val_default=0,
 )
 
-jitter = MouseJitter()
+jiggler = MouseJiggler()
 caps_word = CapsWord()
 layers = Layers()
 holdtap = HoldTap()
+
 
 class AmpereBoard(KMKKeyboard):
     def __init__(self):
@@ -107,14 +108,6 @@ class AmpereBoard(KMKKeyboard):
 
 keyboard = AmpereBoard()
 
-keyboard.extensions.append(MediaKeys())
-keyboard.extensions.append(rgb)
-keyboard.modules.append(split)
-keyboard.modules.append(layers)
-keyboard.modules.append(jitter)
-keyboard.modules.append(caps_word)
-keyboard.modules.append(holdtap)
-
 i2c_bus = busio.I2C(keyboard.SCL, keyboard.SDA)
 driver = SSD1306(
     i2c=i2c_bus,
@@ -125,12 +118,12 @@ display = Display(
     display=driver,
     entries=[
         TextEntry(text="Ampere Board", x=0, y=0, y_anchor="A"),
-        TextEntry(text="Layer: ", x=0, y=42, y_anchor="B"),
-        TextEntry(text="BASE", x=40, y=42, y_anchor="B", layer=0),
-        TextEntry(text="FN", x=40, y=42, y_anchor="B", layer=1),
-        TextEntry(text="0 1", x=0, y=14),
-        TextEntry(text="0", x=0, y=14, inverted=True, layer=0),
-        TextEntry(text="1", x=12, y=14, inverted=True, layer=1),
+        TextEntry(text="Layer: ", x=0, y=22, y_anchor="B"),
+        TextEntry(text="BASE", x=40, y=22, y_anchor="B", layer=0),
+        TextEntry(text="FN", x=40, y=22, y_anchor="B", layer=1),
+        # TextEntry(text="0 1", x=0, y=14),
+        # TextEntry(text="0", x=0, y=14, inverted=True, layer=0),
+        # TextEntry(text="1", x=12, y=14, inverted=True, layer=1),
     ],
     width=128,
     height=64,
@@ -143,6 +136,13 @@ display = Display(
 )
 
 keyboard.extensions.append(display)
+keyboard.extensions.append(MediaKeys())
+keyboard.extensions.append(rgb)
+keyboard.modules.append(split)
+keyboard.modules.append(layers)
+keyboard.modules.append(jiggler)
+keyboard.modules.append(caps_word)
+keyboard.modules.append(holdtap)
 
 keyboard.keymap = [
     [
@@ -160,7 +160,7 @@ keyboard.keymap = [
         KC.N9,
         KC.N0,
         KC.MINUS,
-        #row2
+        # row2
         KC.TAB,
         KC.Q,
         KC.W,
@@ -175,7 +175,7 @@ keyboard.keymap = [
         KC.Y,
         KC.SCOLON,
         KC.EQUAL,
-        #row3
+        # row3
         KC.ESCAPE,
         KC.A,
         KC.R,
@@ -190,7 +190,7 @@ keyboard.keymap = [
         KC.I,
         KC.O,
         KC.QUOTE,
-        #row4
+        # row4
         KC.LSHIFT,
         KC.Z,
         KC.X,
@@ -205,7 +205,7 @@ keyboard.keymap = [
         KC.DOT,
         KC.SLSH,
         KC.RSHIFT,
-        #row5
+        # row5
         KC.LGUI,
         KC.KP_PLUS,
         KC.KP_MINUS,
@@ -224,17 +224,17 @@ keyboard.keymap = [
         KC.MEDIA_NEXT_TRACK,  # Encoder 1 clockwise
         KC.MEDIA_PREV_TRACK,  # Encoder 1 counterclockwise
         KC.MEDIA_PLAY_PAUSE,  # Encoder 1 press
-        #Key Scanner
+        # Key Scanner
         KC.A,
         # Encoder 1 mappings
         KC.AUDIO_VOL_UP,  # Encoder 2 clockwise
         KC.AUDIO_VOL_DOWN,  # Encoder 2 counterclockwise
         KC.AUDIO_MUTE,  # Encoder 2 press
-        #Key Scanner
+        # Key Scanner
         KC.D,
     ],
     [
-        KC.TG_JITTER,
+        KC.TG_JIGGLER,
         KC.F1,
         KC.F2,
         KC.F3,
