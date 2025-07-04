@@ -153,7 +153,7 @@ keyboard.keymap = [
         KC.N4,
         KC.N5,
         KC.HT(KC.CW, KC.MO(1)),
-        KC.PS_TOG,
+        KC.PRINT_SCREEN,
         KC.N6,
         KC.N7,
         KC.N8,
@@ -225,7 +225,7 @@ keyboard.keymap = [
         KC.MEDIA_PREV_TRACK,  # Encoder 1 counterclockwise
         KC.MEDIA_PLAY_PAUSE,  # Encoder 1 press
         # Key Scanner
-        KC.A,
+        KC.MO(1),
         # Encoder 1 mappings
         KC.AUDIO_VOL_UP,  # Encoder 2 clockwise
         KC.AUDIO_VOL_DOWN,  # Encoder 2 counterclockwise
