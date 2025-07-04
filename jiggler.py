@@ -33,7 +33,8 @@ class MouseJiggler(Module):
                 )
             else:
                 keyboard.extensions[0].entries.pop()
-            keyboard.extensions[0].render()
+            keyboard.extensions[0].render(0)
+        return
 
     def after_matrix_scan(self, keyboard):
         return
